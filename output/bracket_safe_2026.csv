@@ -1,0 +1,64 @@
+region,round,team_a,team_b,winner,win_probability,is_upset
+east,Round of 64,Duke,Norfolk St.,Duke,0.999,False
+east,Round of 64,Mississippi St.,Boise St.,Boise St.,0.846,True
+east,Round of 64,Oregon,Liberty,Liberty,0.596,True
+east,Round of 64,Arizona,Vermont,Arizona,0.994,False
+east,Round of 64,BYU,VCU,BYU,0.519,False
+east,Round of 64,Wisconsin,Lipscomb,Wisconsin,0.994,False
+east,Round of 64,Saint Mary's,Vanderbilt,Saint Mary's,0.505,False
+east,Round of 64,Alabama,Robert Morris,Alabama,0.955,False
+east,Round of 32,Duke,Boise St.,Duke,0.765,False
+east,Round of 32,Liberty,Arizona,Arizona,0.911,False
+east,Round of 32,BYU,Wisconsin,Wisconsin,0.581,False
+east,Round of 32,Saint Mary's,Alabama,Saint Mary's,0.517,True
+east,Sweet 16,Duke,Arizona,Duke,0.52,False
+east,Sweet 16,Wisconsin,Saint Mary's,Saint Mary's,0.534,True
+east,Elite 8,Duke,Saint Mary's,Duke,0.676,False
+west,Round of 64,Houston,SIU Edwardsville,Houston,0.995,False
+west,Round of 64,Gonzaga,Georgia,Gonzaga,0.606,False
+west,Round of 64,Clemson,UC Irvine,Clemson,0.848,False
+west,Round of 64,Maryland,Yale,Yale,0.838,True
+west,Round of 64,Missouri,Drake,Missouri,0.987,False
+west,Round of 64,Texas Tech,Grand Canyon,Texas Tech,0.726,False
+west,Round of 64,UCLA,New Mexico,UCLA,0.596,False
+west,Round of 64,Tennessee,Colgate,Tennessee,0.995,False
+west,Round of 32,Houston,Gonzaga,Houston,0.527,False
+west,Round of 32,Clemson,Yale,Clemson,0.763,False
+west,Round of 32,Missouri,Texas Tech,Texas Tech,0.653,False
+west,Round of 32,UCLA,Tennessee,Tennessee,0.536,False
+west,Sweet 16,Houston,Clemson,Houston,0.655,False
+west,Sweet 16,Texas Tech,Tennessee,Texas Tech,0.505,True
+west,Elite 8,Houston,Texas Tech,Houston,0.614,False
+south,Round of 64,Auburn,Jackson St.,Auburn,0.999,False
+south,Round of 64,Louisville,Creighton,Louisville,0.847,False
+south,Round of 64,Michigan St.,Troy,Michigan St.,0.945,False
+south,Round of 64,Texas A&M,High Point,Texas A&M,0.635,False
+south,Round of 64,Illinois,San Diego St.,Illinois,0.646,False
+south,Round of 64,Iowa St.,Akron,Iowa St.,0.659,False
+south,Round of 64,Marquette,Arkansas,Arkansas,0.852,True
+south,Round of 64,Florida,Montana St.,Florida,0.955,False
+south,Round of 32,Auburn,Louisville,Louisville,0.641,True
+south,Round of 32,Michigan St.,Texas A&M,Michigan St.,0.598,True
+south,Round of 32,Illinois,Iowa St.,Iowa St.,0.508,False
+south,Round of 32,Arkansas,Florida,Florida,0.589,False
+south,Sweet 16,Louisville,Michigan St.,Michigan St.,0.573,False
+south,Sweet 16,Iowa St.,Florida,Florida,0.529,False
+south,Elite 8,Michigan St.,Florida,Florida,0.584,False
+midwest,Round of 64,Florida,Grambling,Florida,0.999,False
+midwest,Round of 64,Connecticut,Memphis,Connecticut,0.966,False
+midwest,Round of 64,Pittsburgh,McNeese,McNeese,0.868,True
+midwest,Round of 64,Purdue,Iona,Purdue,0.994,False
+midwest,Round of 64,Mississippi,Xavier,Mississippi,0.737,False
+midwest,Round of 64,Kentucky,Morehead St.,Kentucky,0.997,False
+midwest,Round of 64,Kansas,Oklahoma,Kansas,0.647,False
+midwest,Round of 64,Michigan,Winthrop,Michigan,0.967,False
+midwest,Round of 32,Florida,Connecticut,Florida,0.524,False
+midwest,Round of 32,McNeese,Purdue,Purdue,0.686,False
+midwest,Round of 32,Mississippi,Kentucky,Kentucky,0.803,False
+midwest,Round of 32,Kansas,Michigan,Michigan,0.621,False
+midwest,Sweet 16,Florida,Purdue,Florida,0.566,False
+midwest,Sweet 16,Kentucky,Michigan,Michigan,0.71,False
+midwest,Elite 8,Florida,Michigan,Michigan,0.597,True
+final_four,Final Four,Duke,Houston,Duke,0.562,False
+final_four,Final Four,Florida,Michigan,Michigan,0.546,True
+championship,Championship,Duke,Michigan,Duke,0.515,False

@@ -1,0 +1,527 @@
+{
+  "_instructions": "Per-team injury data for all projected 2026 NCAA Tournament teams. impact: 'star' | 'starter' | 'rotation'. status: 'out' | 'questionable' | 'limited'. injury_date: ISO date or null. projected_return: 'season-ending' | 'R1' | 'R2' | 'Sweet16' | 'Final Four' | 'unknown' | null.",
+  "_last_updated": "2026-03-15 — Selection Sunday. Researched team-by-team.",
+  "_note": "Update questionable/limited entries from official NCAA player availability reports (due 9pm venue time night before each game). Some teams had no injury news after dedicated searches — marked with verified_clean: true.",
+
+  "injuries": [
+
+    {
+      "_comment": "==================== ACC ===================="
+    },
+    {
+      "team": "Duke",
+      "player": "Caleb Foster",
+      "impact": "starter",
+      "status": "out",
+      "injury_date": "2026-03-08",
+      "projected_return": "Final Four",
+      "note": "Right foot fracture (vs UNC, regular season finale). Had surgery. 8.5 pts, 2.8 ast — primary PG. Return only possible if Duke reaches Final Four."
+    },
+    {
+      "team": "Duke",
+      "player": "Patrick Ngongba",
+      "impact": "starter",
+      "status": "questionable",
+      "injury_date": "2026-03-08",
+      "projected_return": "R1",
+      "note": "Right foot soreness. Missed entire ACC Tournament. Scheyer expects him back for NCAA R1 but not guaranteed. 10.7 pts, 6.0 reb, team-leader in blocks. Monitor R1 availability report."
+    },
+    {
+      "team": "Virginia",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Lost to Duke 74-70 in ACC final — healthy and competitive."
+    },
+    {
+      "team": "Louisville",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": false,
+      "note": "Bracketologists flagged Louisville as potentially shorthanded entering tournament but no specific player confirmed. Not confirmed clean — monitor R1 availability report."
+    },
+    {
+      "team": "Miami (FL)",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "North Carolina",
+      "player": "Caleb Wilson",
+      "impact": "star",
+      "status": "out",
+      "injury_date": "2026-03-05",
+      "projected_return": "season-ending",
+      "note": "Right thumb fracture (while dunking). All-America candidate. Also missed time earlier with left hand fracture. Season over. Major ceiling cap for UNC."
+    },
+    {
+      "team": "NC State",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries confirmed after search. Bubble team entering."
+    },
+    {
+      "team": "Clemson",
+      "player": "Carter Welling",
+      "impact": "starter",
+      "status": "out",
+      "injury_date": "2026-03-11",
+      "projected_return": "season-ending",
+      "note": "Right ACL tear (vs Wake Forest, ACC Tournament R1). 10.2 pts, 5.4 reb, 6'11\" interior anchor. Season over. Clemson's second ACL of the year."
+    },
+    {
+      "team": "Clemson",
+      "player": "Zac Foster",
+      "impact": "rotation",
+      "status": "out",
+      "injury_date": "2025-12-16",
+      "projected_return": "season-ending",
+      "note": "Left ACL tear (vs South Carolina, December). Freshman guard — out all season. Backcourt depth already depleted entering tournament."
+    },
+    {
+      "team": "SMU",
+      "player": "B.J. Edwards",
+      "impact": "starter",
+      "status": "questionable",
+      "injury_date": null,
+      "projected_return": "R1",
+      "note": "Undisclosed injury — flagged by bracketologists as relevant to SMU's bubble case. SMU has confirmed he'll be available if they make it. Monitor."
+    },
+
+    {
+      "_comment": "==================== Big Ten ===================="
+    },
+    {
+      "team": "Michigan",
+      "player": "L.J. Cason",
+      "impact": "rotation",
+      "status": "out",
+      "injury_date": "2026-01-25",
+      "projected_return": "season-ending",
+      "note": "ACL tear (at Illinois). Backup guard — expected to redshirt 2026-27. Adds load on Elliot Cadeau."
+    },
+    {
+      "team": "Illinois",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Lost to Wisconsin 91-88 OT in Big Ten quarters — health not a factor."
+    },
+    {
+      "team": "Michigan State",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found. Lost to UCLA 88-84 in Big Ten quarters."
+    },
+    {
+      "team": "Purdue",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found. Won Big Ten Tournament title — healthy and peaking."
+    },
+    {
+      "team": "Nebraska",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found. Lost to Purdue 74-58 in Big Ten quarters."
+    },
+    {
+      "team": "Wisconsin",
+      "player": "Nolan Winter",
+      "impact": "star",
+      "status": "questionable",
+      "injury_date": "2026-03-04",
+      "projected_return": "R1",
+      "note": "Left ankle (vs Maryland). Missed 4 straight games including entire Big Ten Tournament. Gard says 'definitely ready' for NCAA Tournament. 13.3 pts, 8.6 reb team leader. Wisconsin went 4-0 without him but was badly outrebounded. Upgrade from official R1 availability report."
+    },
+    {
+      "team": "Wisconsin",
+      "player": "Jack Janicki",
+      "impact": "rotation",
+      "status": "questionable",
+      "injury_date": "2026-02-20",
+      "projected_return": "R1",
+      "note": "Undisclosed injury — Gard said 'a possibility' for NCAA Tournament. Bench depth piece."
+    },
+    {
+      "team": "UCLA",
+      "player": "Tyler Bilodeau",
+      "impact": "star",
+      "status": "limited",
+      "injury_date": "2026-03-13",
+      "projected_return": "R1",
+      "note": "Right knee strain (vs Michigan State, Big Ten quarters). Team's leading scorer at 18 pts/game, leads conference in 3pt% at 46.2%. Diagnosed mild strain, cleared for NCAA Tournament. Expected back R1 but manage minutes."
+    },
+    {
+      "team": "UCLA",
+      "player": "Donovan Dent",
+      "impact": "star",
+      "status": "limited",
+      "injury_date": "2026-03-14",
+      "projected_return": "R1",
+      "note": "Left calf strain (vs Purdue, Big Ten semis). Team's PG — 13+ pts/game, entire offense runs through him. Cronin held him out as precaution. Dent expects to play R1. Was carried off court post-game which is concerning. Monitor availability report — UCLA lost both their top two players in 48 hours."
+    },
+    {
+      "team": "Iowa",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Ohio State",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+
+    {
+      "_comment": "==================== Big 12 ===================="
+    },
+    {
+      "team": "Arizona",
+      "player": "Koa Peat",
+      "impact": "starter",
+      "status": "limited",
+      "injury_date": "2026-02-14",
+      "projected_return": "R1",
+      "note": "Lower leg muscle strain (vs Texas Tech). Missed 3 games, returned March 1. 13.8 pts, 5.4 reb, 2.6 ast. Played through entire Big 12 Tournament including championship win. Trending healthy — note as monitoring entry only."
+    },
+    {
+      "team": "Arizona",
+      "player": "Jaden Bradley",
+      "impact": "star",
+      "status": "limited",
+      "injury_date": "2026-03-14",
+      "projected_return": "R1",
+      "note": "Left wrist injury (Big 12 final vs Houston). Left game briefly, X-ray negative, returned and played out the win. Star PG — Big 12 Player of the Year. Precautionary concern heading to tournament. Monitor."
+    },
+    {
+      "team": "Houston",
+      "player": "Milos Uzan",
+      "impact": "starter",
+      "status": "limited",
+      "injury_date": "2026-02-01",
+      "projected_return": "R1",
+      "note": "Two ankle sprains (different legs) plus foot injury. Was game-time decision vs Kansas. 11.5 pts, 5.6 ast — veteran PG, key to Houston's offense. Sampson pulled him with 8 min left vs Kansas saying he 'had nothing.' Watch availability reports."
+    },
+    {
+      "team": "Houston",
+      "player": "Emanuel Sharp",
+      "impact": "starter",
+      "status": "limited",
+      "injury_date": "2026-02-22",
+      "projected_return": "R1",
+      "note": "Hip injury from hard falls vs Arizona (regular season). 15.8 pts/game — second leading scorer. Sampson pulled both Sharp and Uzan vs Kansas with 8 minutes remaining. Expected available but not fully healthy."
+    },
+    {
+      "team": "Iowa State",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Lost Big 12 semi to Arizona on buzzer-beater."
+    },
+    {
+      "team": "Texas Tech",
+      "player": "JT Toppin",
+      "impact": "star",
+      "status": "out",
+      "injury_date": "2026-02-17",
+      "projected_return": "season-ending",
+      "note": "ACL tear (at Arizona State). Reigning Big 12 Player of the Year. Committee dropped Tech one full seed line because of this injury. Do not pick for deep run."
+    },
+    {
+      "team": "Texas Tech",
+      "player": "Christian Anderson",
+      "impact": "starter",
+      "status": "limited",
+      "injury_date": "2026-03-13",
+      "projected_return": "R1",
+      "note": "Apparent groin injury (vs Iowa State, Big 12 Tournament). Left game but confirmed available for NCAA Tournament. Key guard for Tech post-Toppin. Monitor R1 availability report."
+    },
+    {
+      "team": "BYU",
+      "player": "Richie Saunders",
+      "impact": "star",
+      "status": "out",
+      "injury_date": "2026-02-15",
+      "projected_return": "season-ending",
+      "note": "ACL tear (vs Colorado). Was BYU's third scoring option alongside Dybantsa and Wright. Team is razor thin — Dybantsa carrying everything."
+    },
+    {
+      "team": "Kansas",
+      "player": "Darryn Peterson",
+      "impact": "star",
+      "status": "limited",
+      "injury_date": "2025-10-01",
+      "projected_return": "unknown",
+      "note": "Recurring full-body cramping + hamstring/ankle issues since preseason. Missed 11 of 27 regular season games. 19.8 pts in 22 games. Projected No. 1 NBA pick. Coach Self: 'concerning for single-elimination.' Says feeling better. Must update from availability report each round."
+    },
+    {
+      "team": "TCU",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "UCF",
+      "player": "Jamichael Stillwell",
+      "impact": "starter",
+      "status": "limited",
+      "injury_date": null,
+      "projected_return": "R1",
+      "note": "Nagging undisclosed injury. Shot 5-of-14 over two Big 12 Tournament games. Playing through it but not 100%. Monitor official reports."
+    },
+
+    {
+      "_comment": "==================== Big East ===================="
+    },
+    {
+      "team": "UConn",
+      "player": "Silas Demary Jr.",
+      "impact": "star",
+      "status": "questionable",
+      "injury_date": "2026-03-14",
+      "projected_return": "R1",
+      "note": "Left ankle/foot sprain (Big East final vs St. John's). Went to locker room twice, was carried off court at end of game. Hurley said 'very mild sprain, no swelling.' X-rays precautionary. 11 pts, 6.3 ast, 1.6 stl — leads team in assists and steals. This is an important one to monitor before R1."
+    },
+    {
+      "team": "UConn",
+      "player": "Jaylin Stewart",
+      "impact": "rotation",
+      "status": "questionable",
+      "injury_date": "2026-03-10",
+      "projected_return": "R1",
+      "note": "Undisclosed injury — missed entire Big East Tournament. Hurley said hopeful he returns for NCAA Tournament. Reserve forward, bench depth piece."
+    },
+    {
+      "team": "St. John's",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found. Won Big East Tournament. Healthy and rolling."
+    },
+    {
+      "team": "Villanova",
+      "player": "Matt Hodge",
+      "impact": "starter",
+      "status": "out",
+      "injury_date": "2026-03-01",
+      "projected_return": "season-ending",
+      "note": "Right ACL tear (vs St. John's). Started all 29 games, 9.2 pts, 28 min/game. Only player on roster taller than 6'6\" not a center — major rebounding and frontcourt depth loss."
+    },
+
+    {
+      "_comment": "==================== SEC ===================="
+    },
+    {
+      "team": "Florida",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Got blown out by Vanderbilt 91-74 in SEC semis — health not the factor."
+    },
+    {
+      "team": "Alabama",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Lost to Ole Miss 80-79 in SEC quarters."
+    },
+    {
+      "team": "Vanderbilt",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found. Hot team — beat Florida 91-74, playing in SEC final today."
+    },
+    {
+      "team": "Arkansas",
+      "player": "Darius Acuff Jr.",
+      "impact": "star",
+      "status": "limited",
+      "injury_date": "2026-02-14",
+      "projected_return": "R1",
+      "note": "Nagging left ankle injury (since Auburn game Feb 14). Wore walking boot at times. Sat out regular season finale vs Missouri to rest. Returned for SEC Tournament and played through it. SEC Player of the Year — 22.2 pts, 6.4 ast. Calipari says he wanted full rest before March. Should be available R1 but monitor for setbacks."
+    },
+    {
+      "team": "Tennessee",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Kentucky",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Georgia",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Texas A&M",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Missouri",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+
+    {
+      "_comment": "==================== WCC ===================="
+    },
+    {
+      "team": "Gonzaga",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Won WCC Tournament."
+    },
+    {
+      "team": "Saint Mary's",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "Santa Clara",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+
+    {
+      "_comment": "==================== Mountain West ===================="
+    },
+    {
+      "team": "Utah State",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search. Won Mountain West Tournament."
+    },
+
+    {
+      "_comment": "==================== Atlantic 10 ===================="
+    },
+    {
+      "team": "Saint Louis",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    },
+    {
+      "team": "VCU",
+      "player": null,
+      "impact": null,
+      "status": null,
+      "injury_date": null,
+      "projected_return": null,
+      "verified_clean": true,
+      "note": "No significant injuries found after dedicated search."
+    }
+
+  ]
+}
