@@ -142,5 +142,31 @@ def champion(
     console.print()
 
 
+@app.command(name="ui-export")
+def ui_export(
+    bracket: str = typer.Option(..., help="Path to bracket JSON file"),
+    sims: int = typer.Option(10000, help="Number of Monte Carlo simulations"),
+    output: str = typer.Option("ui/public/data/bracket-data.json", help="Output JSON path"),
+    injuries_file: str = typer.Option(None, help="Path to injuries JSON"),
+):
+    """Export simulation data as JSON for the React UI."""
+    from src.bracket import MonteCarloSimulator
+    from src.output import export_ui_json
+    from src.upsets import detect_upsets
+
+    bracket_data, team_data, model = _load_everything(bracket, injuries_file)
+
+    console.print("[bold]Scanning for upset alerts...[/bold]")
+    upset_alerts = detect_upsets(team_data, bracket_data)
+
+    console.print(f"[bold]Running {sims:,} simulations...[/bold]")
+    mc = MonteCarloSimulator(bracket_data, model, team_data)
+    mc_results = mc.run(n_sims=sims)
+
+    console.print("[bold]Building probability matrix + exporting UI JSON...[/bold]")
+    export_ui_json(mc_results, mc, team_data, upset_alerts, bracket_data, output)
+    console.print(f"[bold green]Done! Open the UI with: cd ui && npm run dev[/bold green]")
+
+
 if __name__ == "__main__":
     app()

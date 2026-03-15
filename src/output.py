@@ -309,3 +309,146 @@ def export_all_brackets(mc_results, team_data: dict, output_dir: str | Path):
         ("risky", mc_results.build_risky_bracket()),
     ]:
         export_csv(bracket, team_data, path / f"bracket_{strategy_name}_2026.csv")
+
+
+def export_ui_json(
+    mc_results,
+    mc_simulator,
+    team_data: dict[str, dict],
+    upset_alerts: list[dict],
+    bracket_data: dict,
+    output_path: str | Path,
+    lock_threshold: float = 0.90,
+):
+    """Export full simulation data as a fat JSON for the React UI.
+
+    Contains: original bracket, three strategy brackets, full pairwise probability
+    matrix, team metrics, upset alerts, and advancement probabilities.
+
+    Matchups where the favorite wins > lock_threshold of simulations are flagged
+    as locked — the UI should prevent overrides on these (they're near-certain).
+    """
+    from datetime import datetime
+
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Build the three strategy brackets
+    safe = mc_results.build_safe_bracket()
+    balanced = mc_results.build_balanced_bracket()
+    risky = mc_results.build_risky_bracket()
+
+    def _serialize_matchup(m: dict) -> dict:
+        """Convert a matchup dict to JSON-safe format with lock flag."""
+        wp = m["win_prob"]
+        return {
+            "teamA": m["team_a"],
+            "teamB": m["team_b"],
+            "winner": m["winner"],
+            "winProb": wp,
+            "round": m["round"],
+            "isUpset": m.get("is_upset", False),
+            "locked": wp >= lock_threshold,
+        }
+
+    def _serialize_bracket(b: dict) -> dict:
+        """Convert a bracket dict to a JSON-safe format."""
+        rounds = {}
+        for region_name, region_data in b.get("rounds", {}).items():
+            if isinstance(region_data, dict):
+                rounds[region_name] = {
+                    round_key: [_serialize_matchup(m) for m in matchups]
+                    for round_key, matchups in region_data.items()
+                    if isinstance(matchups, list)
+                }
+            elif isinstance(region_data, list):
+                rounds[region_name] = [
+                    _serialize_matchup(m)
+                    for m in region_data
+                    if isinstance(m, dict)
+                ]
+        return {
+            "champion": b.get("champion"),
+            "championConfidence": b.get("champion_confidence"),
+            "runnerUp": b.get("runner_up"),
+            "finalFour": b.get("final_four"),
+            "regionWinners": b.get("region_winners"),
+            "strategy": b.get("strategy"),
+            "rounds": rounds,
+        }
+
+    # Build probability matrix: all bracket teams × all bracket teams × all rounds
+    # This lets the frontend compute win probability for ANY override scenario
+    all_teams = list(team_data.keys())
+    prob_matrix: dict[str, float] = {}
+
+    for i, team_a in enumerate(all_teams):
+        for team_b in all_teams[i + 1:]:
+            for round_num in range(1, 7):
+                prob = mc_simulator._get_win_prob(team_a, team_b, round_num)
+                # Store as "TeamA|TeamB|round" -> P(A wins)
+                prob_matrix[f"{team_a}|{team_b}|{round_num}"] = round(prob, 4)
+
+    # Team metrics (JSON-safe)
+    team_metrics = {}
+    for name, metrics in team_data.items():
+        team_metrics[name] = {
+            k: v for k, v in metrics.items()
+            if isinstance(v, (int, float, str, bool)) and k != "team"
+        }
+
+    # Advancement probabilities from MC results
+    champ_dict = dict(mc_results.champion_probs())
+    ff_dict = dict(mc_results.final_four_probs())
+    e8_dict = dict(mc_results.elite_eight_probs())
+
+    advancement = {}
+    for team in all_teams:
+        advances = mc_results.team_advances.get(team, [])
+        s16_prob = sum(1 for r in advances if r >= 3) / len(advances) if advances else 0
+        advancement[team] = {
+            "s16": round(s16_prob, 4),
+            "e8": round(e8_dict.get(team, 0), 4),
+            "f4": round(ff_dict.get(team, 0), 4),
+            "champ": round(champ_dict.get(team, 0), 4),
+        }
+
+    # Upset alerts (JSON-safe)
+    alerts = [
+        {
+            "region": a["region"],
+            "higherSeed": a["higher_seed"],
+            "higherTeam": a["higher_team"],
+            "lowerSeed": a["lower_seed"],
+            "lowerTeam": a["lower_team"],
+            "reasons": a["reasons"],
+            "confidence": round(a["confidence"], 3),
+            "matchup": a["matchup"],
+        }
+        for a in upset_alerts
+    ]
+
+    output = {
+        "meta": {
+            "nSims": mc_results.n_sims,
+            "timestamp": datetime.now().isoformat(),
+            "totalTeams": len(all_teams),
+            "lockThreshold": lock_threshold,
+        },
+        "bracket": bracket_data,
+        "strategies": {
+            "safe": _serialize_bracket(safe),
+            "balanced": _serialize_bracket(balanced),
+            "risky": _serialize_bracket(risky),
+        },
+        "probMatrix": prob_matrix,
+        "teamData": team_metrics,
+        "advancement": advancement,
+        "upsetAlerts": alerts,
+    }
+
+    with open(path, "w") as f:
+        json.dump(output, f)
+
+    size_mb = path.stat().st_size / (1024 * 1024)
+    console.print(f"[green]Exported UI JSON ({size_mb:.1f} MB, {len(prob_matrix)} prob entries) to {path}[/green]")

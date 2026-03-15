@@ -1,6 +1,6 @@
 # March Madness Bracket Analyzer
 
-Python CLI tool that runs **10,000 Monte Carlo simulations** of the 2026 NCAA tournament to produce three bracket strategies — safe, balanced, and risky — with champion probabilities, upset alerts, and full advancement odds for every team.
+Python CLI + interactive React UI that runs **10,000 Monte Carlo simulations** of the 2026 NCAA tournament. Produces three bracket strategies (safe, balanced, risky) with champion probabilities, upset alerts, and full advancement odds. The web UI lets you flip between strategies, override picks, and watch confidence cascade in real time.
 
 ## Quick Start
 
@@ -10,18 +10,24 @@ pip install -r requirements.txt
 # Build historical training data (one-time, ~20s)
 python scripts/build_historical_data.py
 
-# Run full analysis (10k simulations, three brackets)
+# Option A: Terminal output
 python main.py run --bracket data/2026_bracket.json
 
-# Export all three brackets as CSVs
-python main.py run --bracket data/2026_bracket.json --export all
-
-# Upset alerts only
-python main.py upsets --bracket data/2026_bracket.json
-
-# Champion probabilities deep dive
-python main.py champion --bracket data/2026_bracket.json
+# Option B: Interactive web UI (recommended)
+python main.py ui-export --bracket data/2026_bracket.json --sims 10000
+cd ui && npm install && npm run dev
+# Open http://localhost:5173
 ```
+
+### CLI Commands
+
+| Command | What it does |
+|---------|-------------|
+| `python main.py run --bracket <file>` | Full Monte Carlo analysis in terminal |
+| `python main.py run --bracket <file> --export all` | Export safe/balanced/risky CSVs |
+| `python main.py upsets --bracket <file>` | Upset alerts only |
+| `python main.py champion --bracket <file>` | Champion probability deep dive |
+| `python main.py ui-export --bracket <file>` | Export JSON for the web UI |
 
 ### CLI Options
 
@@ -33,16 +39,45 @@ python main.py champion --bracket data/2026_bracket.json
 | `--no-train` | false | Skip logistic regression, use weighted composite only |
 | `--injuries-file` | `data/injuries.json` | Path to injuries JSON |
 
+## Interactive Web UI
+
+The UI is a React SPA that loads pre-computed simulation data — no backend server needed.
+
+```bash
+# Generate the data
+python main.py ui-export --bracket data/2026_bracket.json --sims 10000
+
+# Start the UI
+cd ui && npm run dev
+# Open http://localhost:5173
+```
+
+**Features:**
+- **Strategy toggle** — flip between Safe, Balanced, and Risky brackets
+- **Click-to-override** — click any matchup to pick a different winner. Confidence levels cascade through downstream rounds instantly.
+- **Locked matchups** — games where the model is >90% confident are locked and can't be overridden (1v16 blowouts, etc.)
+- **Visual confidence** — every matchup shows win probability, color-coded green (>70%), amber (50–70%), red (<50%)
+- **Seed badges** — color-coded by tier (1–4 blue, 5–8 grey, 9–12 orange, 13–16 red)
+- **Upset indicators** — orange borders on upset picks, pencil icon on manual overrides
+- **Champion banner** — current champion pick, confidence %, Final Four with advancement odds
+- **Upset alerts** — collapsible section with multi-factor upset analysis
+- **Full bracket layout** — 4 regions converging to Final Four + Championship in the center
+
+The entire probability matrix (11,000+ pairwise matchup probabilities) is shipped to the browser, so overrides recalculate instantly — no round-trips to the server.
+
 ## How It Works
 
 ```
-Bracket JSON --> fetch_data.py --> model.py --> bracket.py --> output.py
-                      |                |              |
-               Barttorvik API    Historical CSV    Monte Carlo
-               (live metrics)    (log. regression)  (10k sims)
-                      |
-               injuries.json
-               (Barthag penalties)
+Bracket JSON --> fetch_data.py --> injuries.py --> model.py --> bracket.py --> output.py
+                      |                |              |              |              |
+               Barttorvik API    injuries.json   Historical    Monte Carlo    Terminal / CSV
+               (live metrics)                    CSV (logreg)   (10k sims)         |
+                                                                               ui-export
+                                                                                   |
+                                                                           bracket-data.json
+                                                                                   |
+                                                                            React UI (Vite)
+                                                                           localhost:5173
 ```
 
 1. Fill in `data/2026_bracket_template.json` with 68 teams + seeds after Selection Sunday (~5 min)
@@ -51,6 +86,7 @@ Bracket JSON --> fetch_data.py --> model.py --> bracket.py --> output.py
 4. Injuries reduce affected teams' Barthag ratings before scoring
 5. Monte Carlo engine runs 10,000 tournaments, randomly resolving each matchup based on win probabilities
 6. Three bracket strategies are built from the simulation results
+7. Results render in terminal OR export as JSON for the interactive web UI
 
 ### Three Bracket Strategies
 
@@ -59,14 +95,6 @@ Bracket JSON --> fetch_data.py --> model.py --> bracket.py --> output.py
 | **Safe** | Always picks the favorite | ~13 | Maximizing correct picks |
 | **Balanced** | Picks upsets at >40–47% probability (tighter in later rounds) | ~23 | Most bracket pools |
 | **Risky** | Picks any underdog with >35% win probability | ~28 | High ceiling, differentiation |
-
-### What You Get
-
-- **Champion probabilities** — "Arizona wins it all in 15.5% of sims"
-- **Final Four probabilities** — "Florida makes the Final Four 43% of the time"
-- **Full advancement table** — S16/E8/F4/Champ % for every team
-- **Upset alerts** — multi-factor detection (Barthag delta, seed diff, defensive strength, historical patterns)
-- **Three complete brackets** — safe, balanced, risky — with round-by-round picks and upset counts
 
 ## Filling In the Bracket
 
@@ -114,15 +142,17 @@ Edit `data/injuries.json` to account for injured or suspended players:
 | `starter` | -4% (out), -2% (questionable), -1% (limited) | Regular starter |
 | `rotation` | -2% (out), -1% (questionable), 0% (limited) | Bench contributor |
 
-Multiple injuries stack multiplicatively. The tool auto-loads `data/injuries.json`.
+Multiple injuries stack multiplicatively. The file also supports `verified_clean` entries for teams confirmed healthy and `_comment` dividers for organization. The tool auto-loads `data/injuries.json` and fuzzy-matches team names (e.g., "UConn" matches "Connecticut").
 
 ## Key Design Decisions
 
 | Decision | Rationale |
 |----------|-----------|
 | Monte Carlo over deterministic | 10k simulations capture variance — a 55% favorite loses 45% of the time |
-| Barttorvik as primary data source | Free KenPom equivalent with public JSON API, no auth needed |
-| Logistic regression over complex ML | Interpretable, fast, works with 6 features and ~1000 training samples |
+| React SPA with pre-computed JSON | No backend needed. 11k probabilities in the browser = instant overrides |
+| Locked matchups at >90% confidence | Don't waste time overriding 1v16 games |
+| Blended model (60% logreg + 40% composite) | Ensures injuries always affect predictions, even when logreg is trained |
+| Barttorvik as sole data source | Free KenPom equivalent with public JSON API, no auth needed |
 | Defense weighted higher than offense | Every champion since 2002 had top-25 AdjD — defense wins in March |
 | Champion hard filters (AdjO ≤ 40, AdjD ≤ 25) | No champion has failed these since 2002 |
 | Recent era weighted 2x (2019–2025) | Transfer portal changed roster dynamics |
@@ -166,7 +196,24 @@ march-madness-analyzer/
 │   ├── bracket.py                   # Tournament sim + Monte Carlo engine
 │   ├── upsets.py                    # Upset detection logic
 │   ├── injuries.py                  # Injury adjustment logic
-│   └── output.py                    # Rich terminal display + CSV/JSON export
+│   └── output.py                    # Terminal display + CSV/JSON/UI export
+├── ui/                              # Interactive bracket visualization
+│   ├── src/
+│   │   ├── App.tsx                  # Shell — loads data, renders everything
+│   │   ├── types.ts                 # TypeScript interfaces for data schema
+│   │   ├── hooks/
+│   │   │   ├── useBracketData.ts    # Loads bracket-data.json
+│   │   │   └── useBracketState.ts   # Strategy, overrides, cascade state
+│   │   ├── lib/
+│   │   │   └── cascade.ts           # Override cascade recalculation
+│   │   └── components/
+│   │       ├── Bracket.tsx           # Full tournament layout
+│   │       ├── Region.tsx            # Single region (R64–E8)
+│   │       ├── Matchup.tsx           # Matchup card with click-to-override
+│   │       ├── StrategyToggle.tsx    # Safe/Balanced/Risky toggle
+│   │       ├── ChampionBanner.tsx    # Champion + Final Four display
+│   │       └── UpsetAlerts.tsx       # Collapsible upset alerts
+│   └── public/data/                 # bracket-data.json generated by CLI
 ├── scripts/
 │   ├── build_historical_data.py     # One-time: build training dataset
 │   └── fix_team_names.py            # One-time: normalize names to Barttorvik
@@ -185,8 +232,6 @@ march-madness-analyzer/
 
 ## Dependencies
 
-```
-pandas, numpy, requests, beautifulsoup4, scikit-learn, rich, typer
-```
+**Python:** `pandas, numpy, requests, beautifulsoup4, scikit-learn, rich, typer` — Python 3.12+
 
-Python 3.12+ recommended.
+**UI:** `react, typescript, vite` — Node 18+ (`cd ui && npm install`)
