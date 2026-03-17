@@ -1,12 +1,19 @@
 import { useBracketData } from './hooks/useBracketData';
 import { useBracketState } from './hooks/useBracketState';
+import { VariantSelector } from './components/VariantSelector';
 import { StrategyToggle } from './components/StrategyToggle';
 import { ChampionBanner } from './components/ChampionBanner';
 import { UpsetAlerts } from './components/UpsetAlerts';
 import { Bracket } from './components/Bracket';
+import type { BracketData, StrategyKey } from './types';
 
-function AppContent({ data }: { data: import('./types').BracketData }) {
+function AppContent({ data }: { data: BracketData }) {
   const state = useBracketState(data);
+
+  const hasVariants = Boolean(data.variants && data.variants.length > 0);
+  const activeVariant = hasVariants && data.variants
+    ? data.variants[state.activeVariantId]
+    : undefined;
 
   return (
     <div style={{ padding: '20px 24px', maxWidth: '100%' }}>
@@ -15,7 +22,7 @@ function AppContent({ data }: { data: import('./types').BracketData }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: '20px',
+        marginBottom: '12px',
         flexWrap: 'wrap',
         gap: '12px',
       }}>
@@ -32,12 +39,34 @@ function AppContent({ data }: { data: import('./types').BracketData }) {
             )}
           </p>
         </div>
-        <StrategyToggle active={state.activeStrategy} onChange={state.setStrategy} />
+      </div>
+
+      {/* Variant Selector or fallback Strategy Toggle */}
+      <div style={{ marginBottom: '16px' }}>
+        {hasVariants && data.variants ? (
+          <VariantSelector
+            variants={data.variants}
+            activeId={state.activeVariantId}
+            onChange={state.setVariant}
+          />
+        ) : (
+          <StrategyToggle
+            active={state.activeStrategy as StrategyKey}
+            onChange={(s) => {
+              const id = s === 'safe' ? 0 : s === 'balanced' ? 7 : 10;
+              state.setVariant(id);
+            }}
+          />
+        )}
       </div>
 
       {/* Champion Banner */}
       <div style={{ marginBottom: '16px' }}>
-        <ChampionBanner bracket={state.computedBracket} advancement={data.advancement} />
+        <ChampionBanner
+          bracket={state.computedBracket}
+          advancement={data.advancement}
+          variant={activeVariant}
+        />
       </div>
 
       {/* Upset Alerts */}

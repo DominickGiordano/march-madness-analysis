@@ -13,6 +13,7 @@ export interface BracketData {
     balanced: StrategyBracket;
     risky: StrategyBracket;
   };
+  variants?: BracketVariant[];
   probMatrix: Record<string, number>;
   teamData: Record<string, TeamMetrics>;
   advancement: Record<string, AdvancementProbs>;
@@ -72,3 +73,12 @@ export interface UpsetAlert {
 }
 
 export type StrategyKey = 'safe' | 'balanced' | 'risky';
+
+export interface BracketVariant extends StrategyBracket {
+  variantId: number;
+  variantRank: number;
+  color: string;
+  label: string;
+  upsetCount: number;
+  totalLogProb: number;
+}

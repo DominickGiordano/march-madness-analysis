@@ -469,46 +469,250 @@ class MonteCarloResults:
         return sum(rounds) / len(rounds)
 
     def build_safe_bracket(self) -> dict:
-        """Build a bracket picking the most likely winner of every matchup.
-
-        Maximizes expected correct picks. Heavy on favorites.
-        """
         return self._build_bracket(strategy="safe")
 
     def build_risky_bracket(self) -> dict:
-        """Build a bracket picking upsets where the model sees value.
-
-        Picks the underdog when they win >35% of simulations (meaningful chance)
-        and the matchup is a classic upset seed combo.
-        """
         return self._build_bracket(strategy="risky")
 
     def build_balanced_bracket(self) -> dict:
-        """Build a bracket optimized for bracket pool scoring.
-
-        Later-round upsets score more points, so we sprinkle in high-value
-        upsets in later rounds while keeping early rounds mostly safe.
-        """
         return self._build_bracket(strategy="balanced")
 
-    def _build_bracket(self, strategy: str) -> dict:
+    def build_variants(self, n_variants: int = 15) -> list[dict]:
+        """Build N bracket variants ranging from all-chalk to aggressive upsets.
+
+        Uses a sliding upset threshold across ALL rounds (not just R64).
+        Each variant applies a progressively lower bar for picking underdogs,
+        which naturally produces different champions, Final Fours, and upset
+        patterns as the threshold drops.
+
+        The threshold slides from 0.55 (only pick underdog if clearly better)
+        down to 0.35 (pick any underdog with a real shot).
+        """
+        # Threshold range: 0.55 (safest) down to 0.35 (riskiest)
+        # At 0.55: underdog must have >55% to get picked (almost never)
+        # At 0.50: underdog must be favored (the "chalk upsets")
+        # At 0.45: near coin-flips go to underdog
+        # At 0.40: classic upset territory
+        # At 0.35: any underdog with a real chance gets picked
+        high = 0.55
+        low = 0.35
+
+        all_variants = []
+        for idx in range(n_variants):
+            pct = idx / max(n_variants - 1, 1)
+            threshold = high - pct * (high - low)
+
+            bracket = self._build_bracket_with_threshold(threshold)
+
+            total_log_prob = self._score_bracket(bracket)
+            upset_count = self._count_upsets(bracket)
+
+            # Color based on position
+            if pct <= 0.33:
+                color = "green"
+            elif pct <= 0.66:
+                color = "amber"
+            else:
+                color = "red"
+
+            label = self._variant_label_from_position(idx, n_variants)
+
+            bracket.update({
+                "variant_id": idx,
+                "variant_rank": idx,
+                "color": color,
+                "label": label,
+                "upset_count": upset_count,
+                "total_log_prob": round(total_log_prob, 2),
+                "threshold": round(threshold, 3),
+            })
+            all_variants.append(bracket)
+
+        return all_variants
+
+    def _build_bracket_with_threshold(self, upset_threshold: float) -> dict:
+        """Build a complete bracket using a single upset threshold for ALL rounds.
+
+        For each matchup: if the underdog's sim win rate >= threshold, pick the underdog.
+        Otherwise pick the favorite. This applies to every round including FF and Championship.
+        """
+        regions = list(self.bracket["regions"].keys())
+        all_rounds = {}
+        region_winners = {}
+
+        for region_name, seeds in self.bracket["regions"].items():
+            r64_results = []
+            r64_winners = []
+            for high_seed, low_seed in SEED_MATCHUPS:
+                team_a = seeds.get(str(high_seed))
+                team_b = seeds.get(str(low_seed))
+                if not team_a or not team_b:
+                    continue
+                winner = self._pick_by_threshold(team_a, team_b, 1, upset_threshold)
+                r64_results.append(self._matchup_result(team_a, team_b, winner, 1))
+                r64_winners.append(winner)
+
+            r32_results = []
+            r32_winners = []
+            for i in range(0, len(r64_winners), 2):
+                if i + 1 < len(r64_winners):
+                    winner = self._pick_by_threshold(r64_winners[i], r64_winners[i + 1], 2, upset_threshold)
+                    r32_results.append(self._matchup_result(r64_winners[i], r64_winners[i + 1], winner, 2))
+                    r32_winners.append(winner)
+
+            s16_results = []
+            s16_winners = []
+            for i in range(0, len(r32_winners), 2):
+                if i + 1 < len(r32_winners):
+                    winner = self._pick_by_threshold(r32_winners[i], r32_winners[i + 1], 3, upset_threshold)
+                    s16_results.append(self._matchup_result(r32_winners[i], r32_winners[i + 1], winner, 3))
+                    s16_winners.append(winner)
+
+            e8_results = []
+            e8_winner = ""
+            if len(s16_winners) >= 2:
+                winner = self._pick_by_threshold(s16_winners[0], s16_winners[1], 4, upset_threshold)
+                e8_results.append(self._matchup_result(s16_winners[0], s16_winners[1], winner, 4))
+                e8_winner = winner
+
+            all_rounds[region_name] = {
+                "r64": r64_results, "r32": r32_results,
+                "sweet_16": s16_results, "elite_8": e8_results,
+            }
+            region_winners[region_name] = e8_winner
+
+        # Final Four + Championship
+        ff_pairings = get_ff_pairings(regions)
+        sf1_a, sf1_b = region_winners[ff_pairings[0][0]], region_winners[ff_pairings[0][1]]
+        sf1_winner = self._pick_by_threshold(sf1_a, sf1_b, 5, upset_threshold)
+
+        sf2_a, sf2_b = region_winners[ff_pairings[1][0]], region_winners[ff_pairings[1][1]]
+        sf2_winner = self._pick_by_threshold(sf2_a, sf2_b, 5, upset_threshold)
+
+        all_rounds["final_four"] = [
+            self._matchup_result(sf1_a, sf1_b, sf1_winner, 5),
+            self._matchup_result(sf2_a, sf2_b, sf2_winner, 5),
+        ]
+
+        champ = self._pick_by_threshold(sf1_winner, sf2_winner, 6, upset_threshold)
+        runner_up = sf2_winner if champ == sf1_winner else sf1_winner
+        all_rounds["championship"] = [self._matchup_result(sf1_winner, sf2_winner, champ, 6)]
+
+        champ_prob = self.champion_counts.get(champ, 0) / self.n_sims
+
+        return {
+            "rounds": all_rounds,
+            "region_winners": region_winners,
+            "final_four": list(region_winners.values()),
+            "champion": champ,
+            "runner_up": runner_up,
+            "champion_confidence": champ_prob,
+            "strategy": "variant",
+        }
+
+    def _pick_by_threshold(self, team_a: str, team_b: str, round_num: int, upset_threshold: float) -> str:
+        """Pick winner using simulation data and a single upset threshold.
+
+        If the underdog's sim win rate >= threshold, pick the underdog.
+        Otherwise pick the favorite (higher sim win rate).
+        """
+        key = (team_a, team_b, round_num)
+        total = self.matchup_total.get(key, 0)
+        if total > 0:
+            prob_a = self.matchup_wins.get(key, 0) / total
+        else:
+            rev_key = (team_b, team_a, round_num)
+            rev_total = self.matchup_total.get(rev_key, 0)
+            if rev_total > 0:
+                prob_a = 1.0 - (self.matchup_wins.get(rev_key, 0) / rev_total)
+            else:
+                prob_a = 0.5
+
+        seed_a = self.team_data.get(team_a, {}).get("seed", 8)
+        seed_b = self.team_data.get(team_b, {}).get("seed", 8)
+
+        # Determine favorite and underdog by sim probability
+        if prob_a >= 0.5:
+            fav, dog = team_a, team_b
+            dog_rate = 1.0 - prob_a
+        else:
+            fav, dog = team_b, team_a
+            dog_rate = prob_a
+
+        # Pick underdog if their win rate meets the threshold
+        if dog_rate >= upset_threshold:
+            return dog
+        return fav
+
+    def _variant_label_from_position(self, idx: int, total: int) -> str:
+        """Generate a label based on position in the variant spectrum."""
+        labels_15 = [
+            "All Chalk", "Chalk+1", "Chalk+2", "Light Upsets",
+            "Conservative", "Lean Safe", "Moderate",
+            "Balanced", "Lean Aggressive",
+            "Aggressive", "Bold", "Risky",
+            "Very Risky", "Chaos Lite", "Maximum Chaos",
+        ]
+        if idx < len(labels_15):
+            return labels_15[idx]
+        return f"Variant {idx + 1}"
+
+    def _score_bracket(self, bracket: dict) -> float:
+        """Score a bracket by sum of log win probabilities."""
+        log_sum = 0.0
+        for region_name, region_data in bracket.get("rounds", {}).items():
+            if isinstance(region_data, dict):
+                for matchups in region_data.values():
+                    if isinstance(matchups, list):
+                        for m in matchups:
+                            wp = m.get("win_prob", 0.5)
+                            log_sum += np.log(max(wp, 0.01))
+            elif isinstance(region_data, list):
+                for m in region_data:
+                    if isinstance(m, dict):
+                        wp = m.get("win_prob", 0.5)
+                        log_sum += np.log(max(wp, 0.01))
+        return log_sum
+
+    def _count_upsets(self, bracket: dict) -> int:
+        """Count upset picks in a bracket."""
+        count = 0
+        for region_name, region_data in bracket.get("rounds", {}).items():
+            if isinstance(region_data, dict):
+                for matchups in region_data.values():
+                    if isinstance(matchups, list):
+                        count += sum(1 for m in matchups if m.get("is_upset"))
+            elif isinstance(region_data, list):
+                count += sum(1 for m in region_data if isinstance(m, dict) and m.get("is_upset"))
+        return count
+
+    def _variant_label(self, strategy: str, rank: int, total: int) -> str:
+        """Human-readable label for a bracket variant."""
+        labels = {
+            "safe": ["Ultra Safe", "Very Safe", "Safe", "Safe+", "Safe Aggressive"],
+            "balanced": ["Conservative", "Lean Safe", "Balanced", "Lean Risky", "Aggressive"],
+            "risky": ["Mild Risk", "Moderate Risk", "Risky", "Very Risky", "Max Risk"],
+        }
+        return labels.get(strategy, [""] * total)[rank]
+
+    def _build_bracket(self, strategy: str, threshold_offset: float = 0.0) -> dict:
         """Core bracket builder used by all three strategies."""
         regions = list(self.bracket["regions"].keys())
         all_rounds = {}
         region_winners = {}
 
         for region_name, seeds in self.bracket["regions"].items():
-            region_result, winner = self._build_region(seeds, strategy)
+            region_result, winner = self._build_region(seeds, strategy, threshold_offset)
             all_rounds[region_name] = region_result
             region_winners[region_name] = winner
 
         # Final Four — use standard NCAA pairings
         ff_pairings = get_ff_pairings(regions)
         sf1_a, sf1_b = region_winners[ff_pairings[0][0]], region_winners[ff_pairings[0][1]]
-        sf1_winner = self._pick_winner(sf1_a, sf1_b, 5, strategy, round_label="Final Four")
+        sf1_winner = self._pick_winner(sf1_a, sf1_b, 5, strategy, threshold_offset=threshold_offset)
 
         sf2_a, sf2_b = region_winners[ff_pairings[1][0]], region_winners[ff_pairings[1][1]]
-        sf2_winner = self._pick_winner(sf2_a, sf2_b, 5, strategy, round_label="Final Four")
+        sf2_winner = self._pick_winner(sf2_a, sf2_b, 5, strategy, threshold_offset=threshold_offset)
 
         all_rounds["final_four"] = [
             self._matchup_result(sf1_a, sf1_b, sf1_winner, 5),
@@ -516,7 +720,7 @@ class MonteCarloResults:
         ]
 
         # Championship
-        champ = self._pick_winner(sf1_winner, sf2_winner, 6, strategy, round_label="Championship")
+        champ = self._pick_winner(sf1_winner, sf2_winner, 6, strategy, threshold_offset=threshold_offset)
         runner_up = sf2_winner if champ == sf1_winner else sf1_winner
         all_rounds["championship"] = [self._matchup_result(sf1_winner, sf2_winner, champ, 6)]
 
@@ -532,42 +736,38 @@ class MonteCarloResults:
             "strategy": strategy,
         }
 
-    def _build_region(self, seeds: dict, strategy: str) -> tuple[dict, str]:
+    def _build_region(self, seeds: dict, strategy: str, threshold_offset: float = 0.0) -> tuple[dict, str]:
         """Build one region's bracket for a given strategy."""
-        # R64
         r64_results = []
         r64_winners = []
         for high_seed, low_seed in SEED_MATCHUPS:
             team_a = seeds.get(str(high_seed))
             team_b = seeds.get(str(low_seed))
             if team_a and team_b:
-                winner = self._pick_winner(team_a, team_b, 1, strategy)
+                winner = self._pick_winner(team_a, team_b, 1, strategy, threshold_offset=threshold_offset)
                 r64_results.append(self._matchup_result(team_a, team_b, winner, 1))
                 r64_winners.append(winner)
 
-        # R32
         r32_results = []
         r32_winners = []
         for i in range(0, len(r64_winners), 2):
             if i + 1 < len(r64_winners):
-                winner = self._pick_winner(r64_winners[i], r64_winners[i + 1], 2, strategy)
+                winner = self._pick_winner(r64_winners[i], r64_winners[i + 1], 2, strategy, threshold_offset=threshold_offset)
                 r32_results.append(self._matchup_result(r64_winners[i], r64_winners[i + 1], winner, 2))
                 r32_winners.append(winner)
 
-        # Sweet 16
         s16_results = []
         s16_winners = []
         for i in range(0, len(r32_winners), 2):
             if i + 1 < len(r32_winners):
-                winner = self._pick_winner(r32_winners[i], r32_winners[i + 1], 3, strategy)
+                winner = self._pick_winner(r32_winners[i], r32_winners[i + 1], 3, strategy, threshold_offset=threshold_offset)
                 s16_results.append(self._matchup_result(r32_winners[i], r32_winners[i + 1], winner, 3))
                 s16_winners.append(winner)
 
-        # Elite 8
         e8_results = []
         e8_winner = ""
         if len(s16_winners) >= 2:
-            winner = self._pick_winner(s16_winners[0], s16_winners[1], 4, strategy)
+            winner = self._pick_winner(s16_winners[0], s16_winners[1], 4, strategy, threshold_offset=threshold_offset)
             e8_results.append(self._matchup_result(s16_winners[0], s16_winners[1], winner, 4))
             e8_winner = winner
 
@@ -578,7 +778,7 @@ class MonteCarloResults:
             "elite_8": e8_results,
         }, e8_winner
 
-    def _pick_winner(self, team_a: str, team_b: str, round_num: int, strategy: str, round_label: str = "") -> str:
+    def _pick_winner(self, team_a: str, team_b: str, round_num: int, strategy: str, threshold_offset: float = 0.0) -> str:
         """Pick a winner based on strategy."""
         # Get simulated probability
         key = (team_a, team_b, round_num)
@@ -598,30 +798,36 @@ class MonteCarloResults:
         seed_b = self.team_data.get(team_b, {}).get("seed", 8)
         is_underdog_a = seed_a > seed_b
 
+        # threshold_offset: negative = more upsets, positive = fewer upsets
+        off = threshold_offset
+
         if strategy == "safe":
-            # Always pick the favorite
-            return team_a if prob_a >= 0.5 else team_b
+            # Safe uses a high bar — only pick underdog if they're actually favored
+            # Offset slides how much the underdog needs to be favored
+            safe_threshold = 0.50 - off  # offset +0.04 → need 0.46, offset -0.02 → need 0.52
+            return team_a if prob_a >= safe_threshold else team_b
 
         elif strategy == "risky":
-            # Pick underdog if they have a real shot (>35% win rate)
-            # and seed differential suggests classic upset territory
-            upset_threshold = 0.35
+            if round_num <= 2:
+                upset_threshold = 0.40 + off
+            elif round_num <= 4:
+                upset_threshold = 0.43 + off
+            else:
+                upset_threshold = 0.46 + off
+
             if is_underdog_a and prob_a >= upset_threshold:
                 return team_a
             elif not is_underdog_a and (1 - prob_a) >= upset_threshold:
                 return team_b
-            # Otherwise pick favorite
             return team_a if prob_a >= 0.5 else team_b
 
         elif strategy == "balanced":
-            # Early rounds: pick upsets at >40% probability
-            # Later rounds: only pick upsets at >45% (riskier to be wrong later)
             if round_num <= 2:
-                upset_threshold = 0.40
+                upset_threshold = 0.45 + off
             elif round_num <= 4:
-                upset_threshold = 0.43
+                upset_threshold = 0.47 + off
             else:
-                upset_threshold = 0.47
+                upset_threshold = 0.49 + off
 
             if is_underdog_a and prob_a >= upset_threshold:
                 return team_a

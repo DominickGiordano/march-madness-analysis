@@ -1,15 +1,22 @@
-import type { StrategyBracket, AdvancementProbs } from '../types';
+import type { StrategyBracket, AdvancementProbs, BracketVariant } from '../types';
 
 interface Props {
   bracket: StrategyBracket;
   advancement: Record<string, AdvancementProbs>;
+  variant?: BracketVariant;
 }
 
 function pct(n: number): string {
   return `${(n * 100).toFixed(1)}%`;
 }
 
-export function ChampionBanner({ bracket, advancement }: Props) {
+const BADGE_COLORS: Record<string, string> = {
+  green: '#2a904a',
+  amber: '#b68d25',
+  red: '#b62525',
+};
+
+export function ChampionBanner({ bracket, advancement, variant }: Props) {
   const champAdv = advancement[bracket.champion];
 
   return (
@@ -24,14 +31,41 @@ export function ChampionBanner({ bracket, advancement }: Props) {
       flexWrap: 'wrap',
     }}>
       <div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Predicted Champion
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginBottom: '2px',
+        }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Predicted Champion
+          </div>
+          {variant && (
+            <span style={{
+              display: 'inline-block',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              color: '#fff',
+              background: BADGE_COLORS[variant.color] ?? 'var(--accent-blue)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}>
+              {variant.label}
+            </span>
+          )}
         </div>
         <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--accent-blue)' }}>
           {bracket.champion}
         </div>
         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
           Confidence: {pct(bracket.championConfidence)} | vs {bracket.runnerUp}
+          {variant != null && (
+            <span style={{ marginLeft: '10px', opacity: 0.8 }}>
+              | {variant.upsetCount} upset{variant.upsetCount !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
       </div>
 
@@ -61,7 +95,7 @@ export function ChampionBanner({ bracket, advancement }: Props) {
               >
                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{team}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  F4: {adv ? pct(adv.f4) : '—'}
+                  F4: {adv ? pct(adv.f4) : '---'}
                 </div>
               </div>
             );

@@ -33,6 +33,10 @@ FIELD_MAP = {
     "recent_adj_o": 29,      # adjusted offensive efficiency (recent window)
     "recent_adj_d": 30,      # adjusted defensive efficiency (recent window)
     "recent_barthag": 31,    # barthag computed from recent-window adj ratings
+    "sos": 33,               # strength of schedule (positive = harder)
+    "efg_ratio": 37,         # offensive eFG% / defensive eFG% (>1 = outshoot opponents)
+    "wab": 41,               # Wins Above Bubble — resume quality metric
+    "tempo": 44,             # possessions per game (pace of play)
 }
 
 
@@ -79,19 +83,24 @@ def fetch_team_data(year: int = 2026, retries: int = 3) -> pd.DataFrame:
     total_games = df["wins"] + df["losses"]
     df["win_pct"] = (df["wins"] / total_games).round(4)
 
-    # Compute SOS proxy: higher rank with fewer losses = stronger schedule
-    # Barttorvik doesn't expose SOS directly in this endpoint, so we'll
-    # use the gap between raw win% and Barthag as a proxy
-    # (teams with high Barthag but lower win% faced harder schedules)
-    df["sos_proxy"] = (df["barthag"] - df["win_pct"]).round(4)
+    # SOS is real strength of schedule from Barttorvik (field 33)
+    # Positive = harder schedule, negative = easier
+    # Keep sos_proxy as alias for backward compat
+    df["sos_proxy"] = df["sos"].round(4)
 
     # Momentum: difference between recent-window barthag and season barthag.
-    # Positive = team trending up, negative = trending down.
-    # Barttorvik fields 29/30/31 use a recent-games window for adj ratings.
-    # We use the difference (not ratio) to avoid wild swings for low-barthag teams.
     raw_momentum = df["recent_barthag"] - df["barthag"]
-    # Clamp to +/-0.10 (covers ~99% of tournament-relevant teams)
     df["momentum"] = raw_momentum.clip(lower=-0.10, upper=0.10).round(4)
+
+    # WAB (Wins Above Bubble) — resume quality, ranges ~-25 to +14
+    # Normalize to 0-1 scale for model use (add 25 to shift positive, divide by 40)
+    df["wab_norm"] = ((df["wab"].fillna(0) + 25) / 40).clip(0, 1).round(4)
+
+    # Tempo normalized — center around D1 average (~67.5), scale to ~0-1
+    df["tempo_norm"] = ((df["tempo"].fillna(67.5) - 55) / 20).clip(0, 1).round(4)
+
+    # eFG ratio — already a clean metric (>1 = outshoot opponents)
+    df["efg_ratio"] = df["efg_ratio"].fillna(1.0).round(4)
 
     console.print(f"[green]Fetched {len(df)} teams for {year}[/green]")
     return df
@@ -166,6 +175,11 @@ def get_team_metrics(team_data: pd.DataFrame, team_name: str) -> dict | None:
         "win_pct": float(row["win_pct"]),
         "sos_proxy": float(row["sos_proxy"]),
         "momentum": float(row["momentum"]),
+        "wab": float(row["wab"]) if row["wab"] is not None else 0.0,
+        "wab_norm": float(row["wab_norm"]),
+        "tempo": float(row["tempo"]) if row["tempo"] is not None else 67.5,
+        "tempo_norm": float(row["tempo_norm"]),
+        "efg_ratio": float(row["efg_ratio"]),
     }
 
 

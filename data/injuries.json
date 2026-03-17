@@ -373,13 +373,12 @@
     },
     {
       "team": "Alabama",
-      "player": null,
-      "impact": null,
-      "status": null,
-      "injury_date": null,
-      "projected_return": null,
-      "verified_clean": true,
-      "note": "No significant injuries found after dedicated search. Lost to Ole Miss 80-79 in SEC quarters."
+      "player": "Aden Holloway",
+      "impact": "star",
+      "status": "out",
+      "injury_date": "2026-03-16",
+      "projected_return": "unknown",
+      "note": "Arrested on felony marijuana possession charge (over 1 lb). Temporarily off team. 16.8 ppg, All-SEC Third Team, starting guard. Availability for R1 vs Hofstra unknown — treat as out until Alabama announces otherwise."
     },
     {
       "team": "Vanderbilt",

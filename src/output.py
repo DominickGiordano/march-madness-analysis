@@ -367,7 +367,7 @@ def export_ui_json(
                     for m in region_data
                     if isinstance(m, dict)
                 ]
-        return {
+        result = {
             "champion": b.get("champion"),
             "championConfidence": b.get("champion_confidence"),
             "runnerUp": b.get("runner_up"),
@@ -376,6 +376,15 @@ def export_ui_json(
             "strategy": b.get("strategy"),
             "rounds": rounds,
         }
+        # Add variant metadata if present
+        if "variant_id" in b:
+            result["variantId"] = b["variant_id"]
+            result["variantRank"] = b["variant_rank"]
+            result["color"] = b["color"]
+            result["label"] = b["label"]
+            result["upsetCount"] = b["upset_count"]
+            result["totalLogProb"] = b["total_log_prob"]
+        return result
 
     # Build probability matrix: all bracket teams × all bracket teams × all rounds
     # This lets the frontend compute win probability for ANY override scenario
@@ -428,6 +437,11 @@ def export_ui_json(
         for a in upset_alerts
     ]
 
+    # Build 15 bracket variants from swing matchups
+    console.print("[bold]Building bracket variants from swing matchups...[/bold]")
+    variants_raw = mc_results.build_variants(n_variants=15)
+    variants = [_serialize_bracket(v) for v in variants_raw]
+
     output = {
         "meta": {
             "nSims": mc_results.n_sims,
@@ -441,6 +455,7 @@ def export_ui_json(
             "balanced": _serialize_bracket(balanced),
             "risky": _serialize_bracket(risky),
         },
+        "variants": variants,
         "probMatrix": prob_matrix,
         "teamData": team_metrics,
         "advancement": advancement,

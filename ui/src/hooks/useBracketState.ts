@@ -1,19 +1,23 @@
 import { useState, useMemo, useCallback } from 'react';
-import type { BracketData, StrategyBracket, StrategyKey } from '../types';
+import type { BracketData, StrategyBracket } from '../types';
 import { applyOverrides } from '../lib/cascade';
 
 export interface BracketState {
-  activeStrategy: StrategyKey;
+  activeVariantId: number;
   overrides: Map<string, string>;
   computedBracket: StrategyBracket;
   regionNames: string[];
-  setStrategy: (s: StrategyKey) => void;
+  setVariant: (id: number) => void;
   addOverride: (matchupId: string, winner: string) => void;
   hasOverrides: boolean;
+  /** kept for backward compat — derived from active variant */
+  activeStrategy: string;
 }
 
+const DEFAULT_VARIANT_ID = 7;
+
 export function useBracketState(data: BracketData): BracketState {
-  const [activeStrategy, setActiveStrategy] = useState<StrategyKey>('balanced');
+  const [activeVariantId, setActiveVariantId] = useState<number>(DEFAULT_VARIANT_ID);
   const [overrides, setOverrides] = useState<Map<string, string>>(new Map());
 
   const regionNames = useMemo(
@@ -21,26 +25,37 @@ export function useBracketState(data: BracketData): BracketState {
     [data.bracket.regions],
   );
 
-  const baseBracket = data.strategies[activeStrategy];
+  const hasVariants = Boolean(data.variants && data.variants.length > 0);
+
+  const baseBracket: StrategyBracket = useMemo(() => {
+    if (hasVariants && data.variants) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return data.variants[activeVariantId] ?? data.variants[0]!;
+    }
+    // fallback: map variant id to old strategy keys
+    if (activeVariantId < 5) return data.strategies.safe;
+    if (activeVariantId < 10) return data.strategies.balanced;
+    return data.strategies.risky;
+  }, [hasVariants, data.variants, data.strategies, activeVariantId]);
 
   const computedBracket = useMemo(
     () => applyOverrides(baseBracket, overrides, data.probMatrix, regionNames),
     [baseBracket, overrides, data.probMatrix, regionNames],
   );
 
-  const setStrategy = useCallback(
-    (s: StrategyKey) => {
-      if (s === activeStrategy) return;
+  const setVariant = useCallback(
+    (id: number) => {
+      if (id === activeVariantId) return;
       if (overrides.size > 0) {
         const confirmed = window.confirm(
-          'Switching strategies will reset your manual picks. Continue?',
+          'Switching variants will reset your manual picks. Continue?',
         );
         if (!confirmed) return;
       }
       setOverrides(new Map());
-      setActiveStrategy(s);
+      setActiveVariantId(id);
     },
-    [activeStrategy, overrides.size],
+    [activeVariantId, overrides.size],
   );
 
   const addOverride = useCallback((matchupId: string, winner: string) => {
@@ -51,13 +66,18 @@ export function useBracketState(data: BracketData): BracketState {
     });
   }, []);
 
+  const activeStrategy = hasVariants && data.variants
+    ? (data.variants[activeVariantId]?.strategy ?? 'balanced')
+    : activeVariantId < 5 ? 'safe' : activeVariantId < 10 ? 'balanced' : 'risky';
+
   return {
-    activeStrategy,
+    activeVariantId,
     overrides,
     computedBracket,
     regionNames,
-    setStrategy,
+    setVariant,
     addOverride,
     hasOverrides: overrides.size > 0,
+    activeStrategy,
   };
 }
