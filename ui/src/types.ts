@@ -59,6 +59,13 @@ export interface TeamMetrics {
   win_pct: number;
   sos_proxy: number;
   momentum: number;
+  wab: number;
+  wab_norm: number;
+  tempo: number;
+  tempo_norm: number;
+  efg_ratio: number;
+  barthag_original?: number;
+  injury_adjusted?: boolean;
 }
 
 export interface UpsetAlert {

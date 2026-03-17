@@ -1,19 +1,39 @@
+import { useState, useCallback } from 'react';
 import { useBracketData } from './hooks/useBracketData';
 import { useBracketState } from './hooks/useBracketState';
 import { VariantSelector } from './components/VariantSelector';
 import { StrategyToggle } from './components/StrategyToggle';
 import { ChampionBanner } from './components/ChampionBanner';
-import { UpsetAlerts } from './components/UpsetAlerts';
+import { GameInsights } from './components/GameInsights';
 import { Bracket } from './components/Bracket';
-import type { BracketData, StrategyKey } from './types';
+import { BracketLegend } from './components/BracketLegend';
+import { MatchupModal } from './components/MatchupModal';
+import { UpsetModal } from './components/UpsetModal';
+import type { BracketData, StrategyKey, Matchup, UpsetAlert } from './types';
+
+type ModalState =
+  | { kind: 'none' }
+  | { kind: 'matchup'; matchup: Matchup }
+  | { kind: 'upset'; alert: UpsetAlert };
 
 function AppContent({ data }: { data: BracketData }) {
   const state = useBracketState(data);
+  const [modal, setModal] = useState<ModalState>({ kind: 'none' });
 
   const hasVariants = Boolean(data.variants && data.variants.length > 0);
   const activeVariant = hasVariants && data.variants
     ? data.variants[state.activeVariantId]
     : undefined;
+
+  const closeModal = useCallback(() => { setModal({ kind: 'none' }); }, []);
+
+  const openMatchupModal = useCallback((matchup: Matchup) => {
+    setModal({ kind: 'matchup', matchup });
+  }, []);
+
+  const openUpsetModal = useCallback((alert: UpsetAlert) => {
+    setModal({ kind: 'upset', alert });
+  }, []);
 
   return (
     <div style={{ padding: '20px 24px', maxWidth: '100%' }}>
@@ -66,22 +86,47 @@ function AppContent({ data }: { data: BracketData }) {
           bracket={state.computedBracket}
           advancement={data.advancement}
           variant={activeVariant}
+          teamData={data.teamData}
         />
       </div>
 
-      {/* Upset Alerts */}
+      {/* Game Insights: Upset Picks / Toss-Ups / Alerts */}
       <div style={{ marginBottom: '16px' }}>
-        <UpsetAlerts alerts={data.upsetAlerts} />
+        <GameInsights
+          bracket={state.computedBracket}
+          alerts={data.upsetAlerts}
+          teamData={data.teamData}
+          onShowUpsetDetails={openUpsetModal}
+          onShowMatchupDetails={openMatchupModal}
+        />
       </div>
 
-      {/* Bracket */}
+      {/* Legend + Bracket */}
+      <BracketLegend />
       <Bracket
         bracket={state.computedBracket}
         regionNames={state.regionNames}
         overrides={state.overrides}
         teamData={data.teamData}
         onOverride={state.addOverride}
+        onShowMatchupDetails={openMatchupModal}
       />
+
+      {/* Modals */}
+      {modal.kind === 'matchup' && (
+        <MatchupModal
+          matchup={modal.matchup}
+          teamData={data.teamData}
+          onClose={closeModal}
+        />
+      )}
+      {modal.kind === 'upset' && (
+        <UpsetModal
+          alert={modal.alert}
+          teamData={data.teamData}
+          onClose={closeModal}
+        />
+      )}
     </div>
   );
 }

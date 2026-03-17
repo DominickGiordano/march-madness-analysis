@@ -3,6 +3,7 @@ import type { UpsetAlert } from '../types';
 
 interface Props {
   alerts: UpsetAlert[];
+  onShowDetails?: (alert: UpsetAlert) => void;
 }
 
 function confidenceColor(c: number): string {
@@ -11,7 +12,7 @@ function confidenceColor(c: number): string {
   return 'var(--accent-red)';
 }
 
-export function UpsetAlerts({ alerts }: Props) {
+export function UpsetAlerts({ alerts, onShowDetails }: Props) {
   const [expanded, setExpanded] = useState(false);
 
   if (alerts.length === 0) return null;
@@ -51,6 +52,7 @@ export function UpsetAlerts({ alerts }: Props) {
           {alerts.map((alert) => (
             <div
               key={alert.matchup}
+              onClick={() => { onShowDetails?.(alert); }}
               style={{
                 background: 'var(--bg-primary)',
                 borderLeft: '3px solid var(--accent-orange)',
@@ -59,6 +61,16 @@ export function UpsetAlerts({ alerts }: Props) {
                 display: 'flex',
                 gap: '16px',
                 alignItems: 'flex-start',
+                cursor: onShowDetails ? 'pointer' : 'default',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                if (onShowDetails) {
+                  e.currentTarget.style.background = 'var(--bg-tertiary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-primary)';
               }}
             >
               <div style={{ flex: 1 }}>
@@ -91,12 +103,28 @@ export function UpsetAlerts({ alerts }: Props) {
                 </div>
               </div>
               <div style={{
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: confidenceColor(alert.confidence),
-                whiteSpace: 'nowrap',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                gap: '2px',
               }}>
-                {(alert.confidence * 100).toFixed(0)}%
+                <span style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: confidenceColor(alert.confidence),
+                  whiteSpace: 'nowrap',
+                }}>
+                  {(alert.confidence * 100).toFixed(0)}%
+                </span>
+                {onShowDetails && (
+                  <span style={{
+                    fontSize: '0.65rem',
+                    color: 'var(--text-muted)',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    View details &#x2192;
+                  </span>
+                )}
               </div>
             </div>
           ))}
