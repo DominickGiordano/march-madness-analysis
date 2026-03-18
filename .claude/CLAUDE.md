@@ -41,7 +41,7 @@ python main.py champion --bracket data/2026_bracket.json                 # champ
 - Barttorvik is the sole data source — endpoint: `https://barttorvik.com/{year}_team_results.json` (works 2008–2026)
 - All 68 team names must resolve to Barttorvik names — surface lookup failures clearly
 - Model blends 60% logreg + 40% composite so injuries (Barthag adjustments) always have weight
-- Final Four pairings: East vs West, South vs Midwest (via `get_ff_pairings()`, not JSON key order)
+- Final Four pairings: East vs South, West vs Midwest (via `get_ff_pairings()`, not JSON key order)
 - Matchups with >90% win probability are flagged `locked` in UI JSON — UI prevents overrides
 - injuries.json entries with null player/impact/status or verified_clean are skipped
 - UI is localhost-only (Vite dev server), no deployment needed

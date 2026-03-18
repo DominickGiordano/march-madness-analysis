@@ -18,24 +18,6 @@
       "15": "Furman",
       "16": "Siena"
     },
-    "west": {
-      "1": "Arizona",
-      "2": "Purdue",
-      "3": "Gonzaga",
-      "4": "Arkansas",
-      "5": "Wisconsin",
-      "6": "BYU",
-      "7": "Miami FL",
-      "8": "Villanova",
-      "9": "Utah St.",
-      "10": "Missouri",
-      "11": "Texas",
-      "12": "High Point",
-      "13": "Hawaii",
-      "14": "Kennesaw St.",
-      "15": "Queens",
-      "16": "LIU"
-    },
     "south": {
       "1": "Florida",
       "2": "Houston",
@@ -53,6 +35,24 @@
       "14": "Penn",
       "15": "Idaho",
       "16": "Prairie View A&M"
+    },
+    "west": {
+      "1": "Arizona",
+      "2": "Purdue",
+      "3": "Gonzaga",
+      "4": "Arkansas",
+      "5": "Wisconsin",
+      "6": "BYU",
+      "7": "Miami FL",
+      "8": "Villanova",
+      "9": "Utah St.",
+      "10": "Missouri",
+      "11": "Texas",
+      "12": "High Point",
+      "13": "Hawaii",
+      "14": "Kennesaw St.",
+      "15": "Queens",
+      "16": "LIU"
     },
     "midwest": {
       "1": "Michigan",

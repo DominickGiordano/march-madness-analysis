@@ -30,16 +30,16 @@ ROUND_NAMES = {
 }
 
 # NCAA Final Four pairings by region name (case-insensitive)
-# East plays West, South plays Midwest (standard NCAA bracket)
+# East plays South, West plays Midwest (2026 NCAA bracket)
 FINAL_FOUR_PAIRINGS = [
-    ({"east", "west"}, {"south", "midwest"}),
+    ({"east", "south"}, {"west", "midwest"}),
 ]
 
 
 def get_ff_pairings(region_names: list[str]) -> list[tuple[str, str]]:
     """Determine Final Four pairings from region names.
 
-    Uses NCAA standard: East vs West, South vs Midwest.
+    Uses 2026 NCAA bracket: East vs South, West vs Midwest.
     Falls back to positional pairing if region names don't match.
     """
     names_lower = [r.lower() for r in region_names]
@@ -119,7 +119,7 @@ class TournamentSimulator:
             if region_results["elite_8"]:
                 region_winners[region_name] = region_results["elite_8"][0]["winner"]
 
-        # Final Four — use standard NCAA pairings (East vs West, South vs Midwest)
+        # Final Four — use standard NCAA pairings (East vs South, West vs Midwest)
         regions = list(self.bracket["regions"].keys())
         ff_matchups = get_ff_pairings(regions)
 
